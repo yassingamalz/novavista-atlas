@@ -1,0 +1,21 @@
+tactical_config:
+  preprocessing:
+    gaussian_blur_kernel: 3
+    hsv_green_lower: [35, 45, 45]
+    hsv_green_upper: [85, 255, 255]
+    morphology_kernel_size: 3
+    
+  line_detection:
+    threshold: 120
+    min_line_length: 30
+    
+  homography:
+    ransac_threshold: 3.0
+    min_matches: 20
+    
+  camera:
+    view_type: "tactical"
+    expected_coverage: 0.5
+    typical_height: 15.0
+    typical_angle: 45.0
+    partial_pitch: true

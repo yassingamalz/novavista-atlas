@@ -1,0 +1,23 @@
+{
+  "template_name": "fifa_pitch",
+  "pitch_dimensions": {
+    "length_meters": 105.0,
+    "width_meters": 68.0,
+    "min_length": 100.0,
+    "max_length": 110.0,
+    "min_width": 64.0,
+    "max_width": 75.0
+  },
+  "fifa_standard": true,
+  "specifications": {
+    "penalty_area_length": 16.5,
+    "penalty_area_width": 40.3,
+    "goal_area_length": 5.5,
+    "goal_area_width": 18.32,
+    "center_circle_radius": 9.15,
+    "penalty_spot_distance": 11.0,
+    "corner_arc_radius": 1.0,
+    "goal_width": 7.32,
+    "goal_height": 2.44
+  }
+}

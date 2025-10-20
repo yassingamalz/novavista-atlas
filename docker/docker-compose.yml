@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  atlas:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ../test_data:/app/test_data
+      - ../output:/app/output
+      - ../configs:/app/configs
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: python examples/basic_usage.py

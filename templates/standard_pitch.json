@@ -1,0 +1,80 @@
+{
+  "template_name": "standard_pitch",
+  "pitch_dimensions": {
+    "length_meters": 105.0,
+    "width_meters": 68.0
+  },
+  "landmarks": {
+    "center": [0, 0],
+    "corners": [
+      [-52.5, -34],
+      [52.5, -34],
+      [52.5, 34],
+      [-52.5, 34]
+    ],
+    "penalty_areas": {
+      "left": {
+        "corners": [
+          [-52.5, -20.15],
+          [-36.0, -20.15],
+          [-36.0, 20.15],
+          [-52.5, 20.15]
+        ],
+        "penalty_spot": [-40.5, 0]
+      },
+      "right": {
+        "corners": [
+          [36.0, -20.15],
+          [52.5, -20.15],
+          [52.5, 20.15],
+          [36.0, 20.15]
+        ],
+        "penalty_spot": [40.5, 0]
+      }
+    },
+    "goal_areas": {
+      "left": {
+        "corners": [
+          [-52.5, -9.16],
+          [-47.0, -9.16],
+          [-47.0, 9.16],
+          [-52.5, 9.16]
+        ]
+      },
+      "right": {
+        "corners": [
+          [47.0, -9.16],
+          [52.5, -9.16],
+          [52.5, 9.16],
+          [47.0, 9.16]
+        ]
+      }
+    },
+    "center_circle": {
+      "center": [0, 0],
+      "radius": 9.15
+    },
+    "corner_arcs": [
+      {
+        "position": "top_left",
+        "center": [-52.5, -34],
+        "radius": 1.0
+      },
+      {
+        "position": "top_right",
+        "center": [52.5, -34],
+        "radius": 1.0
+      },
+      {
+        "position": "bottom_right",
+        "center": [52.5, 34],
+        "radius": 1.0
+      },
+      {
+        "position": "bottom_left",
+        "center": [-52.5, 34],
+        "radius": 1.0
+      }
+    ]
+  }
+}

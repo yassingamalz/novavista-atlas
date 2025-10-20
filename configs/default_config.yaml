@@ -1,0 +1,43 @@
+default_config:
+  preprocessing:
+    gaussian_blur_kernel: 5
+    hsv_green_lower: [35, 40, 40]
+    hsv_green_upper: [85, 255, 255]
+    morphology_kernel_size: 5
+    
+  line_detection:
+    rho: 1
+    theta: 0.017453292519943295  # pi/180
+    threshold: 100
+    min_line_length: 50
+    max_line_gap: 10
+    
+  circle_detection:
+    dp: 1.2
+    min_dist: 100
+    param1: 50
+    param2: 30
+    min_radius: 10
+    max_radius: 200
+    
+  feature_extraction:
+    n_features: 500
+    match_max_distance: 50
+    
+  homography:
+    ransac_threshold: 5.0
+    ransac_max_iters: 2000
+    reprojection_threshold: 5.0
+    
+  pitch:
+    length_meters: 105.0
+    width_meters: 68.0
+    
+  performance:
+    target_processing_time_ms: 2000
+    gpu_enabled: true
+    
+  output:
+    save_visualization: true
+    save_json: true
+    json_indent: 2
