@@ -54,4 +54,4 @@ class TestCoordinateValidator:
         """Test pitch boundary check."""
         validator = CoordinateValidator()
         result = validator.is_within_pitch(np.array([0, 0]))
-        assert result is True
+        assert result == True

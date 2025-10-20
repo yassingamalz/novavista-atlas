@@ -2,6 +2,7 @@
 
 import pytest
 import numpy as np
+import cv2
 from atlas.detection.line_detector import LineDetector
 from atlas.detection.circle_detector import CircleDetector
 from atlas.detection.feature_extractor import FeatureExtractor
