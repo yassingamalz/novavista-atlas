@@ -141,6 +141,7 @@ class AtlasProcessor:
                 "version": self.version,
                 "timestamp": datetime.now().isoformat(),
                 "frame_id": frame_id,
+                "status": status,  # Top-level for convenience
                 
                 "field_detection": {
                     "status": status,
@@ -194,6 +195,7 @@ class AtlasProcessor:
                 "version": self.version,
                 "timestamp": datetime.now().isoformat(),
                 "frame_id": frame_id,
+                "status": "failed",  # Top-level for convenience
                 "field_detection": {
                     "status": "failed",
                     "confidence": 0.0,

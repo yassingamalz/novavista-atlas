@@ -1,7 +1,7 @@
 """Confidence scoring for detections."""
 
 import numpy as np
-from typing import Dict, List
+from typing import Dict, List, Tuple, Optional, Any
 
 
 class ConfidenceScorer:
@@ -14,6 +14,60 @@ class ConfidenceScorer:
             'geometric_consistency': 0.25,
             'coverage': 0.25
         }
+    
+    def calculate_scores(self, field_mask: np.ndarray = None,
+                        lines: List[Tuple[int, int, int, int]] = None,
+                        circles: List[Tuple[int, int, int]] = None,
+                        homography: Optional[np.ndarray] = None,
+                        landmarks: Dict[str, Any] = None) -> Dict[str, float]:
+        """
+        Calculate comprehensive confidence scores for all detections.
+        
+        Args:
+            field_mask: Binary field segmentation mask
+            lines: Detected line segments
+            circles: Detected circles
+            homography: Homography matrix
+            landmarks: Classified landmarks
+            
+        Returns:
+            Dictionary of confidence scores
+        """
+        scores = {}
+        
+        # Feature count score
+        total_features = (len(lines) if lines else 0) + \
+                        (len(circles) if circles else 0)
+        scores['feature_count'] = min(total_features / 50.0, 1.0)
+        
+        # Coverage score (from field mask)
+        if field_mask is not None:
+            coverage = np.sum(field_mask > 0) / field_mask.size
+            scores['coverage'] = min(coverage * 2, 1.0)  # Scale to 0-1
+        else:
+            scores['coverage'] = 0.0
+        
+        # Homography quality score
+        if homography is not None:
+            # Simple validation: check if matrix is reasonable
+            try:
+                det = np.linalg.det(homography[:2, :2])
+                scores['homography'] = min(abs(det) / 10.0, 1.0)
+            except:
+                scores['homography'] = 0.0
+        else:
+            scores['homography'] = 0.0
+        
+        # Geometric consistency score
+        if lines and len(lines) >= 4:
+            scores['geometric_consistency'] = 0.8  # Simplified
+        else:
+            scores['geometric_consistency'] = 0.3
+        
+        # Overall weighted confidence
+        scores['overall'] = self.calculate_overall_confidence(scores)
+        
+        return scores
     
     def calculate_detection_confidence(self, n_features: int, 
                                       reprojection_error: float,
