@@ -606,3 +606,218 @@ For questions, issues, or feature requests:
 ---
 
 **NovaVista Atlas** - Revolutionizing Football Through Intelligent Visualization ⚽🎯
+
+
+# Testing NovaVista Atlas
+
+Simple testing for end users who just want to see visual results.
+
+## 🚀 Quick Start
+
+### Test with Image
+
+```bash
+python test_image.py path/to/your/image.jpg
+```
+
+**What it does:**
+- Shows the original image
+- Processes it through Atlas
+- Shows visual result with field detection and lines
+- Prints status and statistics
+- Saves result to `output/test_result.jpg`
+
+**Example:**
+```bash
+python test_image.py test_data/frames/sample_frame.jpg
+```
+
+---
+
+### Test with Video
+
+```bash
+python test_video.py path/to/your/video.mp4
+```
+
+**What it does:**
+- Processes video frame by frame (samples every 30th frame by default)
+- Shows live visualization during processing
+- Prints statistics for each frame
+- Shows success rate at the end
+
+**Example:**
+```bash
+# Default (every 30th frame)
+python test_video.py test_data/videos/match.mp4
+
+# Process every 15th frame (more frames, slower)
+python test_video.py test_data/videos/match.mp4 15
+
+# Process every 60th frame (fewer frames, faster)
+python test_video.py test_data/videos/match.mp4 60
+```
+
+**Controls during video playback:**
+- Press `q` - Quit
+- Press `s` - Skip to next processed frame
+- Press any other key - Continue
+
+---
+
+## 📊 What You'll See
+
+### Image Test Output:
+```
+==============================================================
+NovaVista Atlas - Image Test
+==============================================================
+Input: test_data/frames/sample.jpg
+
+Image size: 1920 x 1080 pixels
+
+[Press any key to start processing...]
+
+Processing...
+
+==============================================================
+RESULTS
+==============================================================
+Status:           SUCCESS
+Field Coverage:   78.5%
+Lines Detected:   15
+Circles Detected: 1
+Homography:       ✓ Calculated
+Confidence:       0.89
+Processing Time:  1450ms
+==============================================================
+
+✓ Result saved to: output/test_result.jpg
+```
+
+### Video Test Output:
+```
+==============================================================
+NovaVista Atlas - Video Test
+==============================================================
+Input: test_data/videos/match.mp4
+Sample Rate: Every 30 frames
+
+Video info:
+  - Total frames: 9000
+  - FPS: 30.00
+  - Duration: 300.0s
+  - Will process: ~300 frames
+
+Processing video...
+--------------------------------------------------------------
+Frame     0 | Status: success    | Field:  82.5% | Lines:  18 | Time:  1350ms
+Frame    30 | Status: success    | Field:  80.1% | Lines:  16 | Time:  1280ms
+Frame    60 | Status: partial    | Field:  45.2% | Lines:   8 | Time:  1190ms
+...
+--------------------------------------------------------------
+
+==============================================================
+PROCESSING SUMMARY
+==============================================================
+Frames Processed:  300
+Success:           245 (81.7%)
+Partial:           42 (14.0%)
+Failed:            13 (4.3%)
+==============================================================
+```
+
+---
+
+## 🎯 The System Entry Point
+
+Both scripts use the **single entry point**:
+
+```python
+from atlas.core import AtlasProcessor
+
+# Initialize once
+processor = AtlasProcessor()
+
+# Use many times
+result = processor.process_frame("image.jpg")  # Returns JSON
+```
+
+That's it! No need to know about individual modules.
+
+---
+
+## 📁 Project Structure
+
+```
+novavista-atlas/
+├── atlas/
+│   ├── core.py              # ← Single entry point (AtlasProcessor)
+│   ├── preprocessing/       # Internal modules
+│   ├── detection/           # Internal modules
+│   ├── calibration/         # Internal modules
+│   └── ...
+├── tests/                   # Unit tests (74% coverage)
+├── test_image.py            # ← Visual test for images
+├── test_video.py            # ← Visual test for videos
+└── test_data/
+    ├── frames/
+    └── videos/
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### "No module named 'atlas'"
+```bash
+# Make sure you're in the project root
+cd /path/to/novavista-atlas
+
+# Or install the package
+pip install -e .
+```
+
+### "Image/Video not found"
+```bash
+# Use absolute path
+python test_image.py /full/path/to/image.jpg
+
+# Or check file exists
+ls test_data/frames/sample.jpg
+```
+
+### "No field detected"
+- The image may not have enough visible field
+- Try with a different image showing more of the pitch
+- Check the image quality (resolution, lighting)
+
+---
+
+## 📝 Output Format
+
+The system returns JSON in this format:
+
+```json
+{
+  "system": "NovaVista Atlas",
+  "version": "1.0.0",
+  "field_detection": {
+    "status": "success|partial|failed",
+    "confidence": 0.89,
+    "field_percentage": 78.5,
+    "lines_detected": 15,
+    "circles_detected": 1
+  },
+  "calibration": {
+    "homography_matrix": [[...], [...], [...]] or null,
+    "transformation_quality": { ... }
+  },
+  "landmarks": { ... },
+  "processing_metadata": {
+    "processing_time_ms": 1450
+  }
+}
+```
+
+---
