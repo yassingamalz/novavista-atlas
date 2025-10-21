@@ -27,7 +27,7 @@ def main():
     
     # Check file exists
     if not Path(image_path).exists():
-        print(f"❌ Error: Image not found at '{image_path}'")
+        print(f"[X] Error: Image not found at '{image_path}'")
         sys.exit(1)
     
     print("=" * 60)
@@ -38,7 +38,7 @@ def main():
     # Load and show original image
     image = cv2.imread(image_path)
     if image is None:
-        print(f"❌ Error: Cannot load image")
+        print(f"[X] Error: Cannot load image")
         sys.exit(1)
     
     print(f"Image size: {image.shape[1]} x {image.shape[0]} pixels")
@@ -47,13 +47,14 @@ def main():
     cv2.imshow("Original Image", image)
     print("\n[Press any key to start processing...]")
     cv2.waitKey(0)
+    cv2.destroyAllWindows()
     
     # Process
     print("\nProcessing...")
     processor = AtlasProcessor()
     result = processor.process_frame(image_path)
     
-    # Print results
+    # Print results with ASCII-safe characters
     print("\n" + "=" * 60)
     print("RESULTS")
     print("=" * 60)
@@ -61,7 +62,10 @@ def main():
     print(f"Field Coverage:   {result['field_detection']['field_percentage']:.1f}%")
     print(f"Lines Detected:   {result['field_detection']['lines_detected']}")
     print(f"Circles Detected: {result['field_detection']['circles_detected']}")
-    print(f"Homography:       {'✓ Calculated' if result['calibration']['homography_matrix'] else '✗ Failed'}")
+    
+    # ASCII-safe homography status
+    homography_status = "[OK] Calculated" if result['calibration']['homography_matrix'] else "[FAIL] Failed"
+    print(f"Homography:       {homography_status}")
     print(f"Confidence:       {result['field_detection']['confidence']:.2f}")
     print(f"Processing Time:  {result['processing_metadata']['processing_time_ms']:.0f}ms")
     print("=" * 60)
@@ -110,7 +114,7 @@ def main():
     output_path = Path("output") / "test_result.jpg"
     output_path.parent.mkdir(exist_ok=True)
     cv2.imwrite(str(output_path), output)
-    print(f"\n✓ Result saved to: {output_path}")
+    print(f"\n[OK] Result saved to: {output_path}")
 
 
 if __name__ == "__main__":
