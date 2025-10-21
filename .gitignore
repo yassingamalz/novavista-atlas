@@ -43,6 +43,7 @@ test_data/videos/*
 !test_data/videos/.gitkeep
 test_data/frames/*
 !test_data/frames/.gitkeep
+output/*
 
 # Logs
 *.log
