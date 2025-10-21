@@ -59,3 +59,8 @@ configs/stadium_configs/*
 # Temporary
 *.tmp
 temp/
+
+# Models (large checkpoint files)
+atlas/models/*/checkpoints/*.pt
+atlas/models/*/checkpoints/*.pth
+atlas/models/*/checkpoints/*.ckpt
