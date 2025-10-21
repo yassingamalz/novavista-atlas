@@ -6,6 +6,8 @@ import cv2
 from atlas.preprocessing.field_segmentation import FieldSegmenter
 from atlas.detection.line_detector import LineDetector
 from atlas.calibration.homography import HomographyCalculator
+from atlas.core import AtlasProcessor
+from atlas.config import DEFAULT_CONFIG
 
 
 class TestIntegration:
@@ -45,3 +47,34 @@ class TestIntegration:
         # Calculate error
         error = calc.calculate_reprojection_error(src_points, dst_points, H)
         assert error < 5.0
+    
+    def test_core_processor(self):
+        """Test AtlasProcessor initialization and basic processing."""
+        # Test with default config
+        processor = AtlasProcessor()
+        assert processor is not None
+        assert processor.version == "1.0.0"
+        
+        # Test with custom config
+        processor = AtlasProcessor(config=DEFAULT_CONFIG)
+        assert processor.config == DEFAULT_CONFIG
+        
+    def test_core_processor_with_array(self):
+        """Test AtlasProcessor with numpy array input."""
+        processor = AtlasProcessor()
+        test_image = np.zeros((720, 1280, 3), dtype=np.uint8)
+        test_image[100:620, 140:1140] = [50, 200, 50]
+        
+        result = processor.process_frame(test_image)
+        assert result is not None
+        assert 'system' in result
+        assert result['system'] == 'NovaVista Atlas'
+        assert 'version' in result
+        assert 'status' in result
+    
+    def test_core_processor_invalid_input(self):
+        """Test AtlasProcessor with invalid input."""
+        processor = AtlasProcessor()
+        
+        with pytest.raises(ValueError):
+            processor.process_frame("nonexistent_file.jpg")

@@ -6,6 +6,7 @@ import cv2
 from atlas.detection.line_detector import LineDetector
 from atlas.detection.circle_detector import CircleDetector
 from atlas.detection.feature_extractor import FeatureExtractor
+from atlas.detection.corner_detector import detect_corners_harris, detect_corners_shi_tomasi
 
 
 class TestLineDetector:
@@ -61,3 +62,79 @@ class TestFeatureExtractor:
         
         keypoints, descriptors = extractor.extract_keypoints(test_image)
         assert keypoints is not None
+
+
+class TestCornerDetector:
+    """Test corner detection functions."""
+    
+    def test_detect_corners_harris(self):
+        """Test Harris corner detection."""
+        # Create test image with corners
+        test_image = np.zeros((200, 200, 3), dtype=np.uint8)
+        cv2.rectangle(test_image, (50, 50), (150, 150), (255, 255, 255), 2)
+        
+        corners = detect_corners_harris(test_image)
+        assert isinstance(corners, list)
+        assert len(corners) > 0
+        # Check that corners are tuples of integers
+        assert all(isinstance(c, tuple) and len(c) == 2 for c in corners)
+    
+    def test_detect_corners_harris_custom_params(self):
+        """Test Harris corner detection with custom parameters."""
+        test_image = np.zeros((200, 200, 3), dtype=np.uint8)
+        cv2.rectangle(test_image, (50, 50), (150, 150), (255, 255, 255), 2)
+        
+        corners = detect_corners_harris(test_image, block_size=3, ksize=5, k=0.06)
+        assert isinstance(corners, list)
+    
+    def test_detect_corners_shi_tomasi(self):
+        """Test Shi-Tomasi corner detection."""
+        # Create test image with corners
+        test_image = np.zeros((200, 200, 3), dtype=np.uint8)
+        cv2.rectangle(test_image, (50, 50), (150, 150), (255, 255, 255), 2)
+        
+        corners = detect_corners_shi_tomasi(test_image)
+        assert isinstance(corners, list)
+        assert len(corners) >= 0
+        # Check that corners are tuples of integers
+        if corners:
+            assert all(isinstance(c, tuple) and len(c) == 2 for c in corners)
+    
+    def test_detect_corners_shi_tomasi_custom_params(self):
+        """Test Shi-Tomasi with custom parameters."""
+        test_image = np.zeros((200, 200, 3), dtype=np.uint8)
+        cv2.rectangle(test_image, (50, 50), (150, 150), (255, 255, 255), 2)
+        
+        corners = detect_corners_shi_tomasi(
+            test_image, 
+            max_corners=50, 
+            quality_level=0.05, 
+            min_distance=20
+        )
+        assert isinstance(corners, list)
+    
+    def test_detect_corners_shi_tomasi_no_corners(self):
+        """Test Shi-Tomasi on blank image."""
+        test_image = np.zeros((200, 200, 3), dtype=np.uint8)
+        
+        corners = detect_corners_shi_tomasi(test_image)
+        assert isinstance(corners, list)
+        assert len(corners) == 0
+    
+    def test_detect_corners_complex_image(self):
+        """Test corner detection on complex image."""
+        # Create more complex pattern
+        test_image = np.zeros((300, 300, 3), dtype=np.uint8)
+        # Multiple rectangles
+        cv2.rectangle(test_image, (50, 50), (100, 100), (255, 255, 255), 2)
+        cv2.rectangle(test_image, (150, 150), (250, 250), (255, 255, 255), 2)
+        # Lines
+        cv2.line(test_image, (0, 150), (300, 150), (255, 255, 255), 2)
+        cv2.line(test_image, (150, 0), (150, 300), (255, 255, 255), 2)
+        
+        harris_corners = detect_corners_harris(test_image)
+        shi_tomasi_corners = detect_corners_shi_tomasi(test_image)
+        
+        # Both methods should detect corners
+        assert len(harris_corners) > 0
+        assert len(shi_tomasi_corners) > 0
