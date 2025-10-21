@@ -146,7 +146,7 @@ class HoughLineDetector:
 
 
 class LineBasedRefiner:
-    """Refine field mask using detected lines"""
+    """Refine field mask using detected lines - GEOMETRIC EXTENSION"""
     
     @staticmethod
     def create_line_mask(lines: List[LineSegment], shape: Tuple[int, int]) -> np.ndarray:
@@ -169,15 +169,62 @@ class LineBasedRefiner:
         return line_mask > 0
     
     @staticmethod
+    def create_geometric_field_mask(lines: List[LineSegment], shape: Tuple[int, int]) -> np.ndarray:
+        """Create perfect rectangular field mask from detected lines"""
+        if len(lines) < 4:
+            return None
+        
+        # Separate horizontal and vertical lines
+        h_lines = []
+        v_lines = []
+        
+        for line in lines:
+            angle = line.angle % 180
+            if angle > 90:
+                angle -= 180
+            
+            if abs(angle) < 15:  # Horizontal
+                h_lines.append(line)
+            elif abs(abs(angle) - 90) < 15:  # Vertical
+                v_lines.append(line)
+        
+        if len(h_lines) < 2 or len(v_lines) < 2:
+            return None
+        
+        # Find extreme lines (top, bottom, left, right)
+        top_y = min([min(line.y1, line.y2) for line in h_lines])
+        bottom_y = max([max(line.y1, line.y2) for line in h_lines])
+        left_x = min([min(line.x1, line.x2) for line in v_lines])
+        right_x = max([max(line.x1, line.x2) for line in v_lines])
+        
+        # Create rectangular mask
+        geometric_mask = np.zeros(shape, dtype=np.uint8)
+        cv2.rectangle(geometric_mask, (left_x, top_y), (right_x, bottom_y), 255, -1)
+        
+        return geometric_mask > 0
+    
+    @staticmethod
     def refine_mask_with_lines(field_mask: np.ndarray, line_mask: np.ndarray,
-                                lines: List[LineSegment]) -> np.ndarray:
-        """Refine field mask using line positions"""
+                                lines: List[LineSegment], shape: Tuple[int, int]) -> np.ndarray:
+        """Refine field mask using line positions - EXTEND TO GEOMETRIC BOUNDARIES"""
         
         if len(lines) == 0:
             print("  [WARNING] No lines detected, returning original mask")
             return field_mask
         
-        # Find bounding box of all lines
+        # Try to create perfect geometric field mask
+        geometric_mask = LineBasedRefiner.create_geometric_field_mask(lines, shape)
+        
+        if geometric_mask is not None:
+            # Check overlap with original mask
+            overlap = np.logical_and(field_mask, geometric_mask)
+            overlap_ratio = overlap.sum() / field_mask.sum() if field_mask.sum() > 0 else 0
+            
+            if overlap_ratio > 0.5:
+                print(f"  [GEOMETRIC] Using line-based rectangle ({overlap_ratio:.1%} overlap)")
+                return geometric_mask
+        
+        # Fallback: Find bounding box of all lines
         all_x = []
         all_y = []
         for line in lines:
@@ -187,34 +234,28 @@ class LineBasedRefiner:
         if not all_x:
             return field_mask
         
-        # Calculate bounds with margin
-        margin_x = int((max(all_x) - min(all_x)) * 0.05)
-        margin_y = int((max(all_y) - min(all_y)) * 0.05)
+        # Calculate bounds with small margin
+        margin_x = int((max(all_x) - min(all_x)) * 0.03)
+        margin_y = int((max(all_y) - min(all_y)) * 0.03)
         
         x_min = max(0, min(all_x) - margin_x)
         x_max = min(field_mask.shape[1], max(all_x) + margin_x)
         y_min = max(0, min(all_y) - margin_y)
         y_max = min(field_mask.shape[0], max(all_y) + margin_y)
         
-        # Create line-bounded mask
+        # Create line-bounded rectangular mask
         bounded_mask = np.zeros_like(field_mask)
         bounded_mask[y_min:y_max, x_min:x_max] = 1
         
-        # Intersect with original field mask
-        refined = np.logical_and(field_mask, bounded_mask)
-        
-        # Also require some overlap with line zones
+        # Check coverage
         line_overlap = np.logical_and(field_mask, line_mask)
-        
-        # If good line coverage, use bounded mask, else use line overlap
         line_coverage = line_overlap.sum() / field_mask.sum() if field_mask.sum() > 0 else 0
         
-        if line_coverage > 0.15:
-            # Good line detection - use bounded mask
-            return refined.astype(bool)
+        if line_coverage > 0.10:
+            print(f"  [BOUNDED] Using line bounding box ({line_coverage:.1%} coverage)")
+            return bounded_mask.astype(bool)
         else:
-            # Poor line detection - keep original mask but validate with any lines found
-            print(f"  [INFO] Low line coverage ({line_coverage:.1%}), keeping original mask")
+            print(f"  [FALLBACK] Low line coverage ({line_coverage:.1%}), keeping oversegmented mask")
             return field_mask
 
 
@@ -340,11 +381,11 @@ def test_stage_b_line_detection():
             avg_length = np.mean([line.length for line in filtered_lines])
             print(f"  Average line length: {avg_length:.1f}px")
         
-        # Step 7: Line-based refinement
-        print("\n[7/7] Refining mask with lines...")
+        # Step 7: Line-based geometric refinement
+        print("\n[7/7] Geometric refinement with lines...")
         line_mask = line_refiner.create_line_mask(filtered_lines, stage_a_mask.shape)
         line_refined_mask = line_refiner.refine_mask_with_lines(
-            stage_a_mask, line_mask, filtered_lines
+            stage_a_mask, line_mask, filtered_lines, stage_a_mask.shape
         )
         
         # Final fusion
@@ -355,10 +396,6 @@ def test_stage_b_line_detection():
         
         # Save results
         print("\n[SAVE] Saving Stage B results...")
-        
-        # Save final mask
-        final_mask_path = output_dir / f"{image_name}_final_mask.npy"
-        np.save(final_mask_path, final_mask.astype(np.uint8))
         
         # Save PNG overlay
         final_png = (final_mask.astype(np.uint8) * 255)
@@ -371,7 +408,7 @@ def test_stage_b_line_detection():
             output_dir / f"{image_name}_stage_b.png"
         )
         
-        print(f"  ✓ Final mask saved: {final_mask_path.name}")
+        print(f"  ✓ Final mask PNG saved")
         print(f"  ✓ Visualization saved")
     
     print(f"\n{'='*70}")
