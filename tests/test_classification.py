@@ -205,3 +205,80 @@ class TestConfidenceScorer:
         confidence = scorer.calculate_detection_confidence(20, 100)
         assert 0 <= confidence <= 1
         assert confidence > 0
+    
+    def test_calculate_detection_confidence_high_features(self):
+        """Test detection confidence with many features."""
+        scorer = ConfidenceScorer()
+        # High feature count, low error
+        confidence = scorer.calculate_detection_confidence(60, 2.0)
+        assert 0 <= confidence <= 1
+        assert confidence > 0.8  # Should be high confidence
+    
+    def test_calculate_detection_confidence_low_features(self):
+        """Test detection confidence with few features."""
+        scorer = ConfidenceScorer()
+        # Low feature count, high error
+        confidence = scorer.calculate_detection_confidence(5, 8.0)
+        assert 0 <= confidence <= 1
+        assert confidence < 0.5  # Should be low confidence
+    
+    def test_calculate_landmark_confidence(self):
+        """Test landmark confidence calculation."""
+        scorer = ConfidenceScorer()
+        # Valid geometry, low position error
+        confidence = scorer.calculate_landmark_confidence(True, 1.0)
+        assert 0 <= confidence <= 1
+        assert confidence > 0.7  # Should be high confidence
+    
+    def test_calculate_landmark_confidence_invalid_geometry(self):
+        """Test landmark confidence with invalid geometry."""
+        scorer = ConfidenceScorer()
+        # Invalid geometry, high position error
+        confidence = scorer.calculate_landmark_confidence(False, 4.0)
+        assert 0 <= confidence <= 1
+        assert confidence < 0.6  # Should be lower confidence
+    
+    def test_calculate_landmark_confidence_perfect(self):
+        """Test landmark confidence with perfect detection."""
+        scorer = ConfidenceScorer()
+        # Valid geometry, zero error
+        confidence = scorer.calculate_landmark_confidence(True, 0.0)
+        assert confidence == 1.0  # Perfect confidence
+    
+    def test_calculate_overall_confidence(self):
+        """Test overall confidence calculation."""
+        scorer = ConfidenceScorer()
+        scores = {
+            'reprojection_error': 0.9,
+            'feature_count': 0.8,
+            'geometric_consistency': 0.85,
+            'coverage': 0.9
+        }
+        confidence = scorer.calculate_overall_confidence(scores)
+        assert 0 <= confidence <= 1
+        assert confidence > 0.8  # Should be high with all good scores
+    
+    def test_calculate_overall_confidence_partial_scores(self):
+        """Test overall confidence with missing scores."""
+        scorer = ConfidenceScorer()
+        scores = {
+            'reprojection_error': 0.9,
+            'feature_count': 0.8
+        }
+        confidence = scorer.calculate_overall_confidence(scores)
+        assert 0 <= confidence <= 1
+        # Missing scores should reduce overall confidence
+        assert confidence < 1.0
+    
+    def test_calculate_overall_confidence_low_scores(self):
+        """Test overall confidence with low scores."""
+        scorer = ConfidenceScorer()
+        scores = {
+            'reprojection_error': 0.3,
+            'feature_count': 0.2,
+            'geometric_consistency': 0.4,
+            'coverage': 0.3
+        }
+        confidence = scorer.calculate_overall_confidence(scores)
+        assert 0 <= confidence <= 1
+        assert confidence < 0.5  # Should be low with poor scores
