@@ -614,64 +614,86 @@ Simple testing for end users who just want to see visual results.
 
 ## 🚀 Quick Start
 
-### Test with Image
+### Test with Images
 
-```bash
-python test_image.py path/to/your/image.jpg
-```
-
-**What it does:**
-- Shows the original image
-- Processes it through Atlas
-- Shows visual result with field detection and lines
-- Prints status and statistics
-- Saves result to `output/test_result.jpg`
-
-**Example:**
+**Interactive mode (shows windows):**
 ```bash
 python test_image.py test_data/frames/sample_frame.jpg
 ```
 
----
-
-### Test with Video
-
+**Headless mode (saves to files, no GUI):**
 ```bash
-python test_video.py path/to/your/video.mp4
+python test_image_headless.py test_data/frames/sample_frame.jpg
 ```
 
-**What it does:**
-- Processes video frame by frame (samples every 30th frame by default)
-- Shows live visualization during processing
-- Prints statistics for each frame
-- Shows success rate at the end
+**Outputs (Headless):**
+```
+output/
+├── test_result.jpg      # Full visualization with overlays
+├── field_mask.jpg       # Field segmentation mask
+├── lines_only.jpg       # Detected pitch lines
+├── circles_only.jpg     # Detected circles
+├── enhanced.jpg         # Preprocessed image
+└── analysis.json        # Complete analysis data
+```
 
-**Example:**
+---
+
+### Test with Videos
+
+**Interactive mode (real-time visualization):**
 ```bash
-# Default (every 30th frame)
+# Basic usage (every 30th frame)
 python test_video.py test_data/videos/match.mp4
 
-# Process every 15th frame (more frames, slower)
+# Custom sample rate (every 15th frame)
 python test_video.py test_data/videos/match.mp4 15
 
-# Process every 60th frame (fewer frames, faster)
-python test_video.py test_data/videos/match.mp4 60
+# Save output video
+python test_video.py test_data/videos/match.mp4 30 --save
 ```
 
-**Controls during video playback:**
-- Press `q` - Quit
-- Press `s` - Skip to next processed frame
-- Press any other key - Continue
+**Headless mode (batch processing, no GUI):**
+```bash
+python test_video_headless.py test_data/videos/match.mp4 30
+```
+
+**Outputs (Headless):**
+```
+output/
+├── video_result.mp4       # Annotated video with overlays
+└── video_analysis.json    # Frame-by-frame analytics
+```
 
 ---
 
-## 📊 What You'll See
+### Interactive Controls
 
-### Image Test Output:
+When using interactive modes:
+- **Q** - Quit processing
+- **SPACE** - Pause/Resume video
+- **S** - Save current frame to output/
+
+---
+
+### Visualization Features
+
+All test modes include:
+- **Green overlay** - Detected field area (semi-transparent)
+- **Yellow lines** - Detected pitch markings
+- **Cyan circles** - Center circle, penalty arcs
+- **Info panel** - Frame stats, status, performance
+- **Legend** - Color coding guide
+
+---
+
+## 📊 Example Outputs
+
+### Image Test (Interactive)
 ```
-==============================================================
+============================================================
 NovaVista Atlas - Image Test
-==============================================================
+============================================================
 Input: test_data/frames/sample.jpg
 
 Image size: 1920 x 1080 pixels
@@ -680,144 +702,103 @@ Image size: 1920 x 1080 pixels
 
 Processing...
 
-==============================================================
+============================================================
 RESULTS
-==============================================================
+============================================================
 Status:           SUCCESS
 Field Coverage:   78.5%
 Lines Detected:   15
 Circles Detected: 1
-Homography:       ✓ Calculated
+Homography:       [OK] Calculated
 Confidence:       0.89
 Processing Time:  1450ms
-==============================================================
+============================================================
 
-✓ Result saved to: output/test_result.jpg
+Displaying result... (Press any key to close)
+
+[OK] Result saved to: output/test_result.jpg
 ```
 
-### Video Test Output:
+### Image Test (Headless)
 ```
-==============================================================
-NovaVista Atlas - Video Test
-==============================================================
+============================================================
+NovaVista Atlas - Headless Image Test
+============================================================
+Input: test_data/frames/sample.jpg
+Image size: 1920 x 1080 pixels
+
+Processing...
+
+============================================================
+RESULTS
+============================================================
+Status:           SUCCESS
+Field Coverage:   78.5%
+Lines Detected:   15
+Circles Detected: 1
+Homography:       [OK] Calculated
+Confidence:       0.89
+Processing Time:  1450ms
+============================================================
+
+[OK] Full result saved to: output/test_result.jpg
+[OK] Field mask saved to: output/field_mask.jpg
+[OK] Lines visualization saved to: output/lines_only.jpg
+[OK] Circles visualization saved to: output/circles_only.jpg
+[OK] Enhanced image saved to: output/enhanced.jpg
+[OK] Analysis JSON saved to: output/analysis.json
+
+============================================================
+All outputs saved to 'output/' directory:
+  - test_result.jpg    : Full visualization
+  - field_mask.jpg     : Field segmentation
+  - lines_only.jpg     : Detected lines
+  - circles_only.jpg   : Detected circles
+  - enhanced.jpg       : Preprocessed image
+  - analysis.json      : Complete analysis data
+============================================================
+```
+
+### Video Test (Headless)
+```
+============================================================
+NovaVista Atlas - Headless Video Processing
+============================================================
 Input: test_data/videos/match.mp4
 Sample Rate: Every 30 frames
 
 Video info:
+  - Resolution: 1920x1080
   - Total frames: 9000
   - FPS: 30.00
   - Duration: 300.0s
   - Will process: ~300 frames
 
-Processing video...
---------------------------------------------------------------
-Frame     0 | Status: success    | Field:  82.5% | Lines:  18 | Time:  1350ms
-Frame    30 | Status: success    | Field:  80.1% | Lines:  16 | Time:  1280ms
-Frame    60 | Status: partial    | Field:  45.2% | Lines:   8 | Time:  1190ms
-...
---------------------------------------------------------------
+[OK] Output will be saved to: output/video_result.mp4
 
-==============================================================
+Processing video...
+------------------------------------------------------------
+[  0.0%] Frame     0 | Status: success  | Field:  82.5% | Lines:  18 | Circles:  3 | Time:  1350ms
+[  0.3%] Frame    30 | Status: success  | Field:  80.1% | Lines:  16 | Circles:  2 | Time:  1280ms
+[  0.7%] Frame    60 | Status: partial  | Field:  45.2% | Lines:   8 | Circles:  1 | Time:  1190ms
+...
+------------------------------------------------------------
+
+============================================================
 PROCESSING SUMMARY
-==============================================================
+============================================================
+Total Time:        125.4s
 Frames Processed:  300
 Success:           245 (81.7%)
 Partial:           42 (14.0%)
 Failed:            13 (4.3%)
-==============================================================
+
+Average Lines:     14.2
+Average Circles:   2.1
+Avg Process Time:  1258ms
+Processing FPS:    2.39
+============================================================
+
+[OK] Output video saved to: output/video_result.mp4
+[OK] Analysis JSON saved to: output/video_analysis.json
 ```
-
----
-
-## 🎯 The System Entry Point
-
-Both scripts use the **single entry point**:
-
-```python
-from atlas.core import AtlasProcessor
-
-# Initialize once
-processor = AtlasProcessor()
-
-# Use many times
-result = processor.process_frame("image.jpg")  # Returns JSON
-```
-
-That's it! No need to know about individual modules.
-
----
-
-## 📁 Project Structure
-
-```
-novavista-atlas/
-├── atlas/
-│   ├── core.py              # ← Single entry point (AtlasProcessor)
-│   ├── preprocessing/       # Internal modules
-│   ├── detection/           # Internal modules
-│   ├── calibration/         # Internal modules
-│   └── ...
-├── tests/                   # Unit tests (74% coverage)
-├── test_image.py            # ← Visual test for images
-├── test_video.py            # ← Visual test for videos
-└── test_data/
-    ├── frames/
-    └── videos/
-```
-
----
-
-## 🐛 Troubleshooting
-
-### "No module named 'atlas'"
-```bash
-# Make sure you're in the project root
-cd /path/to/novavista-atlas
-
-# Or install the package
-pip install -e .
-```
-
-### "Image/Video not found"
-```bash
-# Use absolute path
-python test_image.py /full/path/to/image.jpg
-
-# Or check file exists
-ls test_data/frames/sample.jpg
-```
-
-### "No field detected"
-- The image may not have enough visible field
-- Try with a different image showing more of the pitch
-- Check the image quality (resolution, lighting)
-
----
-
-## 📝 Output Format
-
-The system returns JSON in this format:
-
-```json
-{
-  "system": "NovaVista Atlas",
-  "version": "1.0.0",
-  "field_detection": {
-    "status": "success|partial|failed",
-    "confidence": 0.89,
-    "field_percentage": 78.5,
-    "lines_detected": 15,
-    "circles_detected": 1
-  },
-  "calibration": {
-    "homography_matrix": [[...], [...], [...]] or null,
-    "transformation_quality": { ... }
-  },
-  "landmarks": { ... },
-  "processing_metadata": {
-    "processing_time_ms": 1450
-  }
-}
-```
-
----
