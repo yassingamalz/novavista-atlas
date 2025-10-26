@@ -1,0 +1,3 @@
+[submodule "atlas/v2/sportlight"]
+	path = atlas/v2/sportlight
+	url = https://github.com/NikolasEnt/soccernet-calibration-sportlight
