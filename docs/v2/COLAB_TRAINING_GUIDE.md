@@ -79,7 +79,7 @@ from SoccerNet.Downloader import SoccerNetDownloader
 
 downloader = SoccerNetDownloader(LocalDirectory="/content/soccernet_data")
 downloader.downloadDataTask(
-    task="camera-calibration",
+    task="calibration-2023",  # Correct task name
     split=["train", "valid", "test"]
 )
 ```
