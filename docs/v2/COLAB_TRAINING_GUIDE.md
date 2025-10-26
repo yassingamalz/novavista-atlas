@@ -132,9 +132,11 @@ The training code processes these annotations to generate 57 keypoints.
 !pip install torch torchvision
 !pip install opencv-python
 !pip install hydra-core
-!pip install argus-learn
 !pip install omegaconf
 !pip install albumentations
+
+# Argus framework (install from GitHub, not available on PyPI)
+!pip install git+https://github.com/lRomul/argus.git
 
 # Install SoccerNet for dataset download
 !pip install SoccerNet
