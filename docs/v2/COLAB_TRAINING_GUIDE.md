@@ -35,15 +35,28 @@ GPU: 16GB VRAM (T4)
 
 ---
 
-## 📦 Dataset Preparation
-
-### 1. Download SoccerNet Dataset
+## 📦 Dataset - Downloaded Automatically in Colab!
 
 The Sportlight model is trained on the **SoccerNet Camera Calibration Challenge** dataset.
 
-**Dataset Structure:**
+**Good News:** The notebook downloads the dataset automatically using the official SoccerNet API!
+
+**No manual download needed** - just run the notebook and it will:
+1. Install SoccerNet package
+2. Download train, valid, test splits (~5-10 GB)
+3. Set up the correct directory structure
+4. Verify all files are valid
+
+**Dataset Details:**
+- **Source:** Official SoccerNet Camera Calibration Challenge
+- **Size:** ~5-10 GB (train + valid + test)
+- **Format:** Paired `.jpg` images and `.json` annotations
+- **Download Time:** 10-20 minutes (depends on connection)
+- **Location:** `/content/soccernet_data` in Colab
+
+**Dataset Structure (created automatically):**
 ```
-dataset/
+/content/soccernet_data/
 ├── train/
 │   ├── image1.jpg
 │   ├── image1.json
@@ -60,32 +73,16 @@ dataset/
     └── ...
 ```
 
-**Get the Dataset:**
-
-**Option A: Official SoccerNet** (Recommended)
+**Download Code (runs automatically in notebook):**
 ```python
-# Install SoccerNet pip package
-!pip install SoccerNet
-
-# Download camera calibration data
 from SoccerNet.Downloader import SoccerNetDownloader
 
-downloader = SoccerNetDownloader(LocalDirectory="/content/soccernet")
+downloader = SoccerNetDownloader(LocalDirectory="/content/soccernet_data")
 downloader.downloadDataTask(
     task="camera-calibration",
     split=["train", "valid", "test"]
 )
 ```
-
-**Option B: From Kaggle** (If available)
-- Search Kaggle for "SoccerNet Camera Calibration"
-- Download and upload to Google Drive
-- Mount Drive in Colab
-
-**Option C: Direct Download**
-- Visit: https://github.com/SoccerNet/sn-calibration
-- Follow their download instructions
-- Upload to Google Drive
 
 ### 2. JSON Annotation Format
 
@@ -115,11 +112,10 @@ The training code processes these annotations to generate 57 keypoints.
 
 ## 🎓 Colab Training Notebook
 
-### Step 1: Mount Google Drive (for dataset storage)
+### Step 1: Start Colab & Enable GPU
 
 ```python
-from google.colab import drive
-drive.mount('/content/drive')
+# No Drive mounting needed - dataset downloads directly!
 ```
 
 ### Step 2: Clone Sportlight Repository
@@ -139,26 +135,41 @@ drive.mount('/content/drive')
 !pip install argus-learn
 !pip install omegaconf
 !pip install albumentations
+
+# Install SoccerNet for dataset download
+!pip install SoccerNet
 ```
 
-### Step 4: Prepare Dataset Path
+### Step 4: Download SoccerNet Dataset (Automatic!)
+
+```python
+from SoccerNet.Downloader import SoccerNetDownloader
+
+print("📦 Downloading SoccerNet dataset...")
+print("⏰ This takes 10-20 minutes")
+
+downloader = SoccerNetDownloader(LocalDirectory="/content/soccernet_data")
+downloader.downloadDataTask(
+    task="camera-calibration",
+    split=["train", "valid", "test"]
+)
+
+print("✅ Dataset downloaded!")
+```
+
+### Step 5: Setup Dataset Path
 
 ```python
 import os
 
-# If dataset on Google Drive
-DATASET_BASE = "/content/drive/MyDrive/soccernet_dataset"
-
-# Or if downloaded to Colab storage
-# DATASET_BASE = "/content/soccernet"
-
-# Create symbolic links for Sportlight's expected paths
+# Create workdir structure
 os.makedirs("/workdir/data/dataset", exist_ok=True)
-!ln -s {DATASET_BASE}/train /workdir/data/dataset/train
-!ln -s {DATASET_BASE}/valid /workdir/data/dataset/valid
-```
+os.makedirs("/workdir/data/experiments", exist_ok=True)
 
-### Step 5: Modify Training Config for Colab
+# Link to downloaded dataset
+!ln -s /content/soccernet_data/train /workdir/data/dataset/train
+!ln -s /content/soccernet_data/valid /workdir/data/dataset/valid
+```
 
 ```python
 # Read current config
@@ -212,17 +223,19 @@ Epoch 2/200: loss=0.042, val_loss=0.035, val_evalai=0.65
 ```python
 # After training completes
 from google.colab import files
+import glob
 
 # Find best model
-import glob
 models = glob.glob("/workdir/data/experiments/HRNet_57_*/evalai-*.pth")
-best_model = sorted(models)[-1]
-
-# Download to local machine
-files.download(best_model)
-
-# Or save to Google Drive
-!cp {best_model} /content/drive/MyDrive/sportlight_models/
+if models:
+    best_model = sorted(models)[-1]
+    print(f"📦 Best model: {best_model}")
+    
+    # Download to your computer
+    files.download(best_model)
+    print("✅ Model downloaded to your Downloads folder!")
+else:
+    print("❌ No models found")
 ```
 
 ---
@@ -351,10 +364,12 @@ Save this as `sportlight_training.ipynb`:
 # 🎯 Sportlight HRNet Training on Colab
 # ========================================
 
-# 1️⃣ Setup
-print("📦 Mounting Google Drive...")
-from google.colab import drive
-drive.mount('/content/drive')
+# 1️⃣ Check GPU
+print("📦 Checking GPU...")
+import torch
+print(f"CUDA Available: {torch.cuda.is_available()}")
+if torch.cuda.is_available():
+    print(f"GPU: {torch.cuda.get_device_name(0)}")
 
 # 2️⃣ Clone Repository
 print("📥 Cloning Sportlight...")
@@ -363,17 +378,29 @@ print("📥 Cloning Sportlight...")
 
 # 3️⃣ Install Dependencies
 print("⚙️ Installing dependencies...")
-!pip install -q torch torchvision opencv-python hydra-core argus-learn omegaconf albumentations
+!pip install -q torch torchvision opencv-python hydra-core argus-learn omegaconf albumentations scipy scikit-image
+!pip install -q SoccerNet  # For dataset download
 
-# 4️⃣ Setup Dataset
-print("📂 Setting up dataset...")
+# 4️⃣ Download SoccerNet Dataset
+print("📦 Downloading SoccerNet dataset...")
+print("⏰ This takes 10-20 minutes")
+from SoccerNet.Downloader import SoccerNetDownloader
+downloader = SoccerNetDownloader(LocalDirectory="/content/soccernet_data")
+downloader.downloadDataTask(task="camera-calibration", split=["train", "valid", "test"])
+print("✅ Dataset downloaded!")
+
+# 5️⃣ Setup Data Directories
+print("📂 Setting up data directories...")
 import os
-DATASET_BASE = "/content/drive/MyDrive/soccernet_dataset"
 os.makedirs("/workdir/data/dataset", exist_ok=True)
-!ln -s {DATASET_BASE}/train /workdir/data/dataset/train
-!ln -s {DATASET_BASE}/valid /workdir/data/dataset/valid
+os.makedirs("/workdir/data/experiments", exist_ok=True)
 
-# 5️⃣ Modify Config for Colab
+# Create links to dataset
+!ln -sf /content/soccernet_data/train /workdir/data/dataset/train
+!ln -sf /content/soccernet_data/valid /workdir/data/dataset/valid
+print("✅ Data directories ready!")
+
+# 6️⃣ Modify Config for Colab
 print("🔧 Modifying config for Colab...")
 import yaml
 config_path = "src/models/hrnet/train_config.yaml"
@@ -386,18 +413,18 @@ config['data_params']['input_size'] = [720, 405]
 config['data_params']['num_workers'] = 2
 config['model']['params']['loss']['pred_size'] = [203, 360]
 config['model']['params']['prediction_transform']['size'] = [405, 720]
+config['model']['params']['amp'] = True
 
 with open(config_path, 'w') as f:
     yaml.dump(config, f)
-
 print("✅ Config updated!")
 
-# 6️⃣ Start Training
+# 7️⃣ Start Training
 print("🚀 Starting training...")
 print("⏰ Expected time: 6-10 hours")
 !python src/models/hrnet/train.py
 
-# 7️⃣ Download Model
+# 8️⃣ Download Model
 print("💾 Downloading trained model...")
 from google.colab import files
 import glob
@@ -406,14 +433,8 @@ models = glob.glob("/workdir/data/experiments/HRNet_57_*/evalai-*.pth")
 if models:
     best_model = sorted(models)[-1]
     print(f"📦 Best model: {best_model}")
-    
-    # Save to Drive
-    !mkdir -p /content/drive/MyDrive/sportlight_models
-    !cp {best_model} /content/drive/MyDrive/sportlight_models/
-    
-    # Download to local
     files.download(best_model)
-    print("✅ Model saved!")
+    print("✅ Model downloaded!")
 else:
     print("❌ No models found")
 ```
